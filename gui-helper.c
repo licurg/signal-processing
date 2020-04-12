@@ -2,47 +2,13 @@
 #include <stdarg.h>
 #include <math.h>
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
+#include "gui-helper.h"
 
-#define NK_PRIVATE
-#define NK_INCLUDE_FIXED_TYPES
-#define NK_INCLUDE_STANDARD_IO
-#define NK_INCLUDE_DEFAULT_ALLOCATOR // Allow to use nk_init_default()
-#define NK_INCLUDE_VERTEX_BUFFER_OUTPUT
-#define NK_INCLUDE_FONT_BAKING
-#define NK_INCLUDE_DEFAULT_FONT
-#define NK_IMPLEMENTATION // Enable implementation mode
-#include "./nuklear/nuklear.h"
-
-#define UNUSED(a) (void)a
-#define NK_SHADER_VERSION "#version 150\n"
-#define MAX_VERTEX_MEMORY 512 * 1024
-#define MAX_ELEMENT_MEMORY 128 * 1024
-
-struct device {
-    struct nk_buffer cmds;
-    struct nk_draw_null_texture null;
-    GLuint vbo, vao, ebo;
-    GLuint prog;
-    GLuint vert_shdr;
-    GLuint frag_shdr;
-    GLint attrib_pos;
-    GLint attrib_uv;
-    GLint attrib_col;
-    GLint uniform_tex;
-    GLint uniform_proj;
-    GLuint font_tex;
-};
-
-struct nk_glfw_vertex {
-    float position[2];
-    float uv[2];
-    nk_byte col[4];
-};
-
-static void
-die(const char *fmt, ...)
+void
+die(
+    const char *fmt, 
+    ...
+)
 {
     va_list ap;
     va_start(ap, fmt);
@@ -52,11 +18,13 @@ die(const char *fmt, ...)
     exit(EXIT_FAILURE);
 }
 
-static void
-device_init(struct device *dev)
+void
+device_init(
+    struct device *dev
+)
 {
     GLint status;
-    static const GLchar *vertex_shader =
+    const GLchar *vertex_shader =
         NK_SHADER_VERSION
         "uniform mat4 ProjMtx;\n"
         "in vec2 Position;\n"
@@ -69,7 +37,7 @@ device_init(struct device *dev)
         "   Frag_Color = Color;\n"
         "   gl_Position = ProjMtx * vec4(Position.xy, 0, 1);\n"
         "}\n";
-    static const GLchar *fragment_shader =
+    const GLchar *fragment_shader =
         NK_SHADER_VERSION
         "precision mediump float;\n"
         "uniform sampler2D Texture;\n"
@@ -134,8 +102,13 @@ device_init(struct device *dev)
     glBindVertexArray(0);
 }
 
-static void
-device_upload_atlas(struct device *dev, const void *image, int width, int height)
+void
+device_upload_atlas(
+    struct device *dev, 
+    const void *image, 
+    int width, 
+    int height
+)
 {
     glGenTextures(1, &dev->font_tex);
     glBindTexture(GL_TEXTURE_2D, dev->font_tex);
@@ -145,8 +118,10 @@ device_upload_atlas(struct device *dev, const void *image, int width, int height
                 GL_RGBA, GL_UNSIGNED_BYTE, image);
 }
 
-static void
-device_shutdown(struct device *dev)
+void
+device_shutdown(
+    struct device *dev
+)
 {
     glDetachShader(dev->prog, dev->vert_shdr);
     glDetachShader(dev->prog, dev->frag_shdr);
@@ -159,9 +134,14 @@ device_shutdown(struct device *dev)
     nk_buffer_free(&dev->cmds);
 }
 
-static void
-device_draw(struct device *dev, struct nk_context *ctx, int width, int height,
-    enum nk_anti_aliasing AA)
+void
+device_draw(
+    struct device *dev, 
+    struct nk_context *ctx, 
+    int width, 
+    int height, 
+    enum nk_anti_aliasing AA
+)
 {
     GLfloat ortho[4][4] = {
         {2.0f, 0.0f, 0.0f, 0.0f},
@@ -205,7 +185,7 @@ device_draw(struct device *dev, struct nk_context *ctx, int width, int height,
         {
             /* fill convert configuration */
             struct nk_convert_config config;
-            static const struct nk_draw_vertex_layout_element vertex_layout[] = {
+            const struct nk_draw_vertex_layout_element vertex_layout[] = {
                 {NK_VERTEX_POSITION, NK_FORMAT_FLOAT, NK_OFFSETOF(struct nk_glfw_vertex, position)},
                 {NK_VERTEX_TEXCOORD, NK_FORMAT_FLOAT, NK_OFFSETOF(struct nk_glfw_vertex, uv)},
                 {NK_VERTEX_COLOR, NK_FORMAT_R8G8B8A8, NK_OFFSETOF(struct nk_glfw_vertex, col)},
@@ -258,14 +238,38 @@ device_draw(struct device *dev, struct nk_context *ctx, int width, int height,
 }
 
 /* glfw callbacks (I don't know if there is a easier way to access text and scroll )*/
-static void error_callback(int e, const char *d){printf("Error %d: %s\n", e, d);}
-static void text_input(GLFWwindow *win, unsigned int codepoint)
-{nk_input_unicode((struct nk_context*)glfwGetWindowUserPointer(win), codepoint);}
-static void scroll_input(GLFWwindow *win, double _, double yoff)
-{UNUSED(_);nk_input_scroll((struct nk_context*)glfwGetWindowUserPointer(win), nk_vec2(0, (float)yoff));}
+void 
+error_callback(
+    int e, 
+    const char *d
+) 
+{
+    printf("Error %d: %s\n", e, d);
+}
+void 
+text_input(
+    GLFWwindow *win, 
+    unsigned int codepoint
+)
+{
+    nk_input_unicode((struct nk_context*)glfwGetWindowUserPointer(win), codepoint);
+}
+void 
+scroll_input(
+    GLFWwindow *win, 
+    double _, 
+    double yoff
+)
+{
+    UNUSED(_);
+    nk_input_scroll((struct nk_context*)glfwGetWindowUserPointer(win), nk_vec2(0, (float)yoff));
+}
 
-static void
-pump_input(struct nk_context *ctx, GLFWwindow *win)
+void
+pump_input(
+    struct nk_context *ctx, 
+    GLFWwindow *win
+)
 {
     double x, y;
     nk_input_begin(ctx);
