@@ -377,6 +377,8 @@ main(
 
     glEnable(GL_TEXTURE_2D);
 
+    set_style(&ctx);
+
     while (!glfwWindowShouldClose(win)) {
         pump_input(&ctx, win);
         gui_begin(&ctx, &signals_array, &signal_plot_scale, &signal_plot_offset, &selected_signal, 0, 0, width, height);
