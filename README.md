@@ -1,6 +1,8 @@
 # Signal Processing
 Software to generate simple signals and mix it.
+
 Waveforms: **Sine, Triangle, Square, Sawtooth**.
+
 Export in files: **\*.wav, \*.csv, \*.json**.
 
 ![Main gui](https://github.com/licurg/signal-processing/blob/master/screenshots/Screenshot%20from%202020-04-13%2011-17-05.png)
